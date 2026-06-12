@@ -11,7 +11,7 @@ Hackathon Track 3 ("Agent Society") requires a multi-agent collaboration system 
 - QwenCloud is mandatory; API access already available.
 - Team of 4, Python-heavy (1–2 can do React/TS). Deadline: 20 days (~July 1, 2026).
 - **Hybrid agent core:** Qwen-Agent SDK handles each agent's inner loop (DashScope calls, tool-calling, custom skills, MCP plumbing); we build the *society layer* ourselves — that custom layer is the technical-depth story.
-- Benchmark task type is undecided → Day 1–2 decision spike (recommendation below).
+- The society concept, its setup, characters, and benchmark task type are undecided → Day 1–2 decision spike (details below).
 
 ## Architecture (target)
 
@@ -37,15 +37,21 @@ Hackathon Track 3 ("Agent Society") requires a multi-agent collaboration system 
 
 Key principle: **the 2D world is a visualization of the orchestration event stream, not a physics sim.** Agents "walk to a meeting table" when a negotiation event fires, etc. This keeps the game layer thin and the society swappable (placeholder now, richer scenarios later). The event schema is the contract between teams — defined in week 1, versioned.
 
-## Benchmark task — decision spike (Days 1–2)
+## Society decision spike (Days 1–2)
 
-**Recommendation:** in-world *organizational* scenario that produces a real artifact — e.g., a "startup company" society given goals like "produce a competitive-analysis report" or "design + spec a landing page." Real artifacts give Problem-Value relevance; in-world framing keeps it controllable and demoable. Metrics vs single agent with identical tools: wall-clock time, total tokens/cost, subtask success rate, artifact quality (LLM-judge rubric + human check), recovery from injected failures. Eval set: 5–8 fixed tasks, ≥3 runs each.
+The spike answers three questions, in order:
+
+1. **What is the society?** Pick the scenario or organization the agents inhabit (e.g., startup company, town council, research lab). This is the product's identity — everything downstream (characters, tasks, map) follows from it.
+2. **Setup & setting:** finalize the world setup — the map/locations (office, meeting table, workstations), the society's goal framing, and the scenario template structure that later societies will plug into.
+3. **Characters:** lock the cast — agent roles, names, personas, capabilities, model tier per character, and matching sprites. Output: a character sheet per agent (role, persona prompt, tools, sprite).
+
+**Benchmark task follows from the society choice.** Recommendation: an in-world *organizational* scenario that produces a real artifact — e.g., a "startup company" society given goals like "produce a competitive-analysis report" or "design + spec a landing page." Real artifacts give Problem-Value relevance; in-world framing keeps it controllable and demoable. Metrics vs single agent with identical tools: wall-clock time, total tokens/cost, subtask success rate, artifact quality (LLM-judge rubric + human check), recovery from injected failures. Eval set: 5–8 fixed tasks, ≥3 runs each.
 
 ## Roadmap
 
 ### Phase 0 — Foundation (Days 1–2)
 
-- Benchmark-task decision spike (above) — whole team, half day.
+- Society decision spike (above): decide what the society is, finalize setup/setting, lock the character roster, and pick benchmark tasks that fit — whole team, day 1.
 - Monorepo setup (`backend/` FastAPI + `frontend/` Vite React), lint/CI, .env handling.
 - DashScope key validation; Qwen-Agent "hello world" with one tool call.
 - Frontend scaffold: render a pre-made tilemap (Kenney/LPC assets) with one movable sprite.
