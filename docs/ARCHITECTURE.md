@@ -141,24 +141,52 @@ Draft v1 event types — **[OPEN — build]** payloads to be specified in `schem
 
 ## 8. Repository layout (proposed)
 
+Single monorepo: a 4-person team on a 20-day clock doesn't want cross-repo versioning, and the one contract that backend and frontend share — the v1 event schema (§4) — lives in one place and is type-exported across the boundary. Backend owns orchestration and all integrations, frontend owns rendering, scenarios are pure data (design principle 4). The tree is created during the Phase 0 scaffold (see ROADMAP).
+
 ```
-backend/
-  app/            # FastAPI app, REST + WebSocket
-  society/        # orchestrator, decomposer, assignment, conflict, blackboard
-  agents/         # character sheets, Qwen-Agent wiring, skills, MCP config
-  baseline/       # single-agent runner
-  metrics/        # instrumentation, eval harness
-  replay/
-  schemas/        # Pydantic events + TS type export
-  tests/
-frontend/
-  src/world/      # PixiJS/Phaser scene, sprites, stage directions
-  src/builder/    # society builder UI
-  src/board/      # task board, negotiation viewer
-  src/dashboard/  # metrics charts
-scenarios/        # society templates (placeholder society lives here)
-docs/
+agent-society/
+├── README.md
+├── .env.example            # DASHSCOPE_API_KEY etc.; never commit real keys
+├── Makefile                # dev / test / typegen entry points
+├── .github/
+│   └── workflows/ci.yml    # lint + backend tests + frontend build
+│
+├── backend/
+│   ├── pyproject.toml
+│   ├── app/                # FastAPI app: REST routes, WebSocket broadcaster
+│   ├── society/            # custom layer: orchestrator + event bus, decomposer,
+│   │                       #   contract-net assignment, conflict FSM, blackboard
+│   ├── agents/             # character sheets + Qwen-Agent assistant wiring
+│   ├── integrations/       # everything that touches the outside world
+│   │   ├── dashscope.py    #   model client wrapper: retries, rate-limit queue, budgets (§6)
+│   │   ├── mcp/            #   MCP server configs: web search, code exec, filesystem
+│   │   └── skills/         #   custom Qwen-Agent skills registered per role
+│   ├── baseline/           # single-agent runner (same instrumentation)
+│   ├── metrics/            # instrumentation, eval harness
+│   ├── replay/             # run-log playback through the WebSocket channel
+│   ├── schemas/            # Pydantic event schemas — source of truth for the contract
+│   └── tests/
+│
+├── frontend/               # React + Vite + TypeScript
+│   ├── package.json
+│   └── src/
+│       ├── world/          # PixiJS/Phaser scene, sprites, stage directions
+│       ├── builder/        # society builder UI
+│       ├── board/          # task board, negotiation viewer
+│       ├── dashboard/      # metrics charts (society vs baseline)
+│       ├── api/            # WebSocket client (reconnect from last seq) + REST client
+│       └── types/
+│           └── events.ts   # GENERATED from backend/schemas — do not hand-edit
+│
+├── scenarios/              # societies as data, one folder each
+│   └── <society>/
+│       ├── society.json    # roles, character sheets, goal framing
+│       └── assets/         # tilemap + sprite references
+│
+└── docs/                   # this file, ROADMAP.md
 ```
+
+The only build-time coupling across the boundary is `frontend/src/types/events.ts`, generated from the Pydantic models in `backend/schemas/` (via `make typegen`); everything else talks over WebSocket/REST at runtime. `agents/` stays thin — character sheets and wiring only — and imports model/tool plumbing from `integrations/`, so swapping a society or adding an MCP server never touches society-layer code.
 
 ## 9. Decision log
 
